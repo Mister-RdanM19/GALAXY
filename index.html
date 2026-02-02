@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ensiklopedia Tata Surya: Edisi Digital Lengkap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --space-black: #05050a;
+            --deep-blue: #0a0a1a;
+            --star-glow: #e0f2f7;
+            --nebula-purple: #8e44ad;
+            --nebula-blue: #3498db;
+            --accent-green: #2ecc71;
+            --text-light: #ecf0f1;
+            --border-color: rgba(52, 152, 219, 0.3);
+            --gold: #f1c40f; /* Tambahan untuk aksen emas penulis */
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--space-black);
+            color: var(--text-light);
+            line-height: 1.8;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        #star-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            background: radial-gradient(circle at center, var(--deep-blue) 0%, var(--space-black) 100%);
+        }
+
+        /* --- SIDEBAR NAVIGATION --- */
+        .sidebar {
+            position: fixed;
+            right: -250px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 230px;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--nebula-blue);
+            border-radius: 20px 0 0 20px;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            padding: 25px;
+        }
+        .sidebar.active { right: 0; }
+        .sidebar-toggle {
+            position: absolute;
+            left: -55px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 55px;
+            height: 65px;
+            background: var(--nebula-blue);
+            border-radius: 15px 0 0 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+        }
+        .sidebar ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar ul li { margin: 12px 0; }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            font-family: 'Orbitron';
+            font-size: 0.7rem;
+            display: block;
+            transition: 0.3s;
+            letter-spacing: 1px;
+        }
+        .sidebar ul li a:hover { color: var(--accent-green); transform: translateX(-5px); }
+
+        /* --- LAYOUT --- */
+        .container { max-width: 950px; margin: 0 auto; padding: 100px 25px; }
+        header { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        h1 { font-family: 'Orbitron'; font-size: clamp(3rem, 10vw, 5.5rem); text-shadow: 0 0 30px var(--nebula-blue); margin: 0; }
+        .subtitle { font-size: 1.2rem; letter-spacing: 6px; color: var(--accent-green); font-weight: 300; }
+        .author-badge { font-family: 'Orbitron'; color: var(--gold); font-size: 0.9rem; margin-top: 20px; letter-spacing: 3px; }
+
+        .section { margin-bottom: 200px; opacity: 0; transform: translateY(40px); transition: 1.2s all ease; }
+        .section.visible { opacity: 1; transform: translateY(0); }
+
+        .planet-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 40px;
+            padding: clamp(30px, 5vw, 60px);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        h2 { font-family: 'Orbitron'; font-size: clamp(2rem, 5vw, 3.5rem); color: var(--nebula-blue); margin-bottom: 30px; border-bottom: 2px solid var(--border-color); display: inline-block; padding-bottom: 10px; }
+        h3 { font-family: 'Orbitron'; color: var(--accent-green); font-size: 1.2rem; margin-top: 30px; }
+
+        /* --- PLANET VISUALS --- */
+        .planet-visual {
+            border-radius: 50%;
+            margin: 0 auto 50px;
+            position: relative;
+            box-shadow: inset -25px -25px 60px #000, 0 0 40px rgba(52, 152, 219, 0.2);
+            animation: float 7s ease-in-out infinite;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-25px) rotate(2deg); } }
+
+        .mercury { background: radial-gradient(circle at 30% 30%, #ddd, #444); width: 80px; height: 80px; }
+        .venus { background: radial-gradient(circle at 30% 30%, #ffdfba, #8b5e1a); width: 130px; height: 130px; box-shadow: inset -25px -25px 60px #000, 0 0 50px rgba(255, 200, 100, 0.2); }
+        .earth { background: radial-gradient(circle at 30% 30%, #3498db, #2ecc71 70%, #0a2e4d); width: 140px; height: 140px; box-shadow: inset -25px -25px 60px #000, 0 0 50px rgba(52, 152, 219, 0.3); }
+        .mars { background: radial-gradient(circle at 30% 30%, #ff7e5f, #7b1d1d); width: 100px; height: 100px; }
+        .jupiter { background: repeating-linear-gradient(#d39c7e 0%, #b87a5d 15%, #d39c7e 30%); width: 220px; height: 220px; }
+        .saturn { background: radial-gradient(circle at 30% 30%, #f1c40f, #8e7b06); width: 190px; height: 190px; }
+        .uranus { background: radial-gradient(circle at 30% 30%, #afeeee, #4682b4); width: 160px; height: 160px; }
+        .neptune { background: radial-gradient(circle at 30% 30%, #1e90ff, #00008b); width: 155px; height: 155px; }
+        .dwarf { background: radial-gradient(circle at 30% 30%, #a5a5a5, #444); width: 70px; height: 70px; }
+
+        .saturn-ring {
+            position: absolute; top: 50%; left: 50%;
+            width: 380px; height: 50px;
+            border: 10px double rgba(241, 196, 15, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+        }
+
+        /* --- DATA TABLE --- */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 40px; background: rgba(0,0,0,0.2); border-radius: 15px; overflow: hidden; }
+        .data-table td { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .data-table td:first-child { font-weight: bold; color: var(--accent-green); width: 45%; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+
+        footer { text-align: center; padding: 120px 20px; background: linear-gradient(transparent, #000); }
+        .footer-credit { font-family: 'Orbitron'; color: var(--gold); margin-bottom: 10px; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+    <canvas id="star-canvas"></canvas>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()">☰</div>
+        <ul>
+            <li><a href="#hero">0. BERANDA</a></li>
+            <li><a href="#p-merkurius">1. MERKURIUS</a></li>
+            <li><a href="#p-venus">2. VENUS</a></li>
+            <li><a href="#p-bumi">3. BUMI</a></li>
+            <li><a href="#p-mars">4. MARS</a></li>
+            <li><a href="#p-jupiter">5. JUPITER</a></li>
+            <li><a href="#p-saturnus">6. SATURNUS</a></li>
+            <li><a href="#p-uranus">7. URANUS</a></li>
+            <li><a href="#p-neptunus">8. NEPTUNUS</a></li>
+            <li><a href="#p-kerdil">9. PLANET KERDIL</a></li>
+            <li><a href="#p-benda">10. BENDA LANGIT</a></li>
+            <li><a href="#footer">PENUTUP</a></li>
+        </ul>
+    </div>
+
+    <header id="hero">
+        <h1>ilmu galaksi alam semesta</h1>
+        <p class="subtitle">EDISI LENGKAP TATA SURYA</p>
+        <div class="author-badge">By Mr.Rm19</div>
+        <p style="margin-top: 50px; opacity: 0.4; font-weight: 300;">BETAPA KECIL NYA KITA!</p>
+    </header>
+
+    <div class="container">
+
+        <section class="section" id="p-merkurius">
+            <div class="planet-card">
+                <div class="planet-visual mercury"></div>
+                <h2>Merkurius</h2>
+                <p>Merkurius adalah planet yang paling dekat dengan Matahari sekaligus yang terkecil di Tata Surya. Planet ini tidak memiliki satelit alami dan hampir tidak memiliki atmosfer untuk mempertahankan panas. Namanya diambil dari dewa pembawa pesan Romawi karena kecepatannya mengorbit Matahari hanya dalam 88 hari Bumi.</p>
+                <h3>Geologi & Lingkungan</h3>
+                <p>Permukaan Merkurius sangat mirip dengan Bulan, dipenuhi oleh kawah-kawah besar akibat hantaman asteroid. Karena ketiadaan atmosfer (hanya eksosfer tipis), suhu di sini berfluktuasi secara ekstrem: sisi yang menghadap Matahari mencapai 430°C, sementara sisi malam turun drastis hingga -180°C.</p>
+                <table class="data-table">
+                    <tr><td>Jarak ke Matahari</td><td>57.910.000 KM</td></tr>
+                    <tr><td>Periode Rotasi</td><td>59 Hari Bumi</td></tr>
+                    <tr><td>Gravitasi</td><td>0.38 x Bumi</td></tr>
+                    <tr><td>Komposisi Utama</td><td>Besi (Inti raksasa), Silikat</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="section" id="p-venus">
+            <div class="planet-card">
+                <div class="planet-visual venus"></div>
+                <h2>Venus</h2>
+                <p>Venus sering dijuluki sebagai "Bintang Kejora" atau "Kembaran Bumi" karena ukuran dan massanya yang mirip. Namun, di balik awan indahnya, Venus adalah tempat paling neraka di Tata Surya. Ia berotasi sangat lambat pada porosnya, bahkan satu hari di Venus lebih lama daripada satu tahunnya.</p>
+                <h3>Atmosfer Mematikan</h3>
+                <p>Venus memiliki atmosfer super tebal yang didominasi oleh Karbon Dioksida (96%). Hal ini menciptakan efek rumah kaca yang tidak terkendali, memerangkap panas Matahari secara permanen. Tekanan udara di permukaannya 90 kali lebih kuat daripada di Bumi, setara dengan tekanan di kedalaman 1 km di bawah samudera.</p>
+                <table class="data-table">
+                    <tr><td>Suhu Rata-rata</td><td>462°C (Cukup melelehkan timah)</td></tr>
+                    <tr><td>Atmosfer</td><td>Karbon Dioksida, Awan Asam Sulfat</td></tr>
+                    <tr><td>Arah Rotasi</td><td>Retrogad (Timur ke Barat)</td></tr>
+                    <tr><td>Jarak ke Matahari</td><td>108.200.000 KM</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="section" id="p-bumi">
+            <div class="planet-card">
+                <div class="planet-visual earth"></div>
+                <h2>Bumi</h2>
+                <p>Bumi adalah satu-satunya planet di alam semesta yang diketahui menampung kehidupan. Terletak di "Zona Goldilocks" (Zona Layak Huni), Bumi memiliki suhu yang tepat sehingga air dapat bertahan dalam bentuk cair—sebuah komponen vital bagi biologi organik.</p>
+                <h3>Sistem Pendukung Kehidupan</h3>
+                <p>Atmosfer Bumi yang kaya akan Nitrogen dan Oksigen, dikombinasikan dengan medan magnet yang kuat, melindungi permukaannya dari radiasi Matahari yang berbahaya. Bumi adalah satu-satunya planet terestrial yang memiliki aktivitas tektonik lempeng yang aktif, yang membantu mengatur siklus karbon dan suhu global.</p>
+                <table class="data-table">
+                    <tr><td>Kemiringan Sumbu</td><td>23.5 Derajat (Pemicu musim)</td></tr>
+                    <tr><td>Luas Permukaan Air</td><td>70.8%</td></tr>
+                    <tr><td>Kecepatan Orbit</td><td>107.000 KM/Jam</td></tr>
+                    <tr><td>Satelit Alami</td><td>1 (Bulan / Luna)</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="section" id="p-mars">
+            <div class="planet-card">
+                <div class="planet-visual mars"></div>
+                <h2>Mars</h2>
+                <p>Mars, sang Planet Merah, telah menjadi pusat obsesi manusia untuk kolonisasi antarplanet. Warnanya berasal dari oksidasi besi atau karat di permukaannya. Mars memiliki hari yang hampir sama dengan Bumi (24,6 jam) dan memiliki kutub es yang terdiri dari air dan karbon dioksida beku.</p>
+                <h3>Ekstrimitas Geografis</h3>
+                <p>Mars adalah rumah bagi Olympus Mons, gunung berapi perisai tertinggi di Tata Surya yang tingginya tiga kali lipat Everest. Ia juga memiliki Valles Marineris, sistem lembah raksasa yang panjangnya setara dengan lebar Amerika Serikat. Meskipun sekarang gersang, bukti geologis menunjukkan Mars pernah memiliki sungai dan danau miliaran tahun lalu.</p>
+                <table class="data-table">
+                    <tr><td>Tekanan Atmosfer</td><td>< 1% dari Bumi</td></tr>
+                    <tr><td>Suhu Rata-rata</td><td>-60°C</td></tr>
+                    <tr><td>Satelit</td><td>Phobos & Deimos</td></tr>
+                    <tr><td>Jarak ke Matahari</td><td>227.900.000 KM</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="section" id="p-jupiter">
+            <div class="planet-card">
+                <div class="planet-visual jupiter"></div>
+                <h2>Jupiter</h2>
+                <p>Jupiter adalah penguasa mutlak para planet. Massanya 318 kali lebih besar dari Bumi, bahkan lebih besar dari gabungan semua planet lain di Tata Surya. Sebagai raksasa gas, Jupiter tidak memiliki permukaan padat; semakin dalam kamu masuk, gas akan berubah menjadi cairan metalik akibat tekanan ekstrem.</p>
+                <h3>Badai Abadi</h3>
+                <p>Fitur paling menonjol adalah Bintik Merah Raksasa, sebuah badai antisiklon yang telah berkecamuk setidaknya selama 400 tahun. Jupiter juga bertindak sebagai "Pembersih Vakum Tata Surya", di mana gravitasinya yang kuat menarik asteroid dan komet yang berpotensi menabrak planet-planet dalam.</p>
+                <table class="data-table">
+                    <tr><td>Jumlah Satelit</td><td>95 (Termasuk Europa & Ganymede)</td></tr>
+                    <tr><td>Kecepatan Rotasi</td><td>9.9 Jam (Tercepat di Tata Surya)</td></tr>
+                    <tr><td>Medan Magnet</td><td>20.000x lebih kuat dari Bumi</td></tr>
+                    <tr><td>Komposisi</td><td>90% Hidrogen, 10% Helium</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="section" id="p-saturnus">
+            <div class="planet-card">
+                <div class="planet-visual saturn">
+                    <div class="saturn-ring"></div>
+                </div>
+                <h2>Saturnus</h2>
+                <p>Saturnus adalah planet terjauh yang bisa dilihat dengan mata telanjang. Ia adalah raksasa gas terbesar kedua yang dikenal karena sistem cincinnya yang spektakuler. Meskipun diameternya sembilan kali lebih besar dari Bumi, Saturnus adalah planet yang paling tidak padat; kepadatannya lebih rendah dari air.</p>
+                <h3>Keajaiban Cincin</h3>
+                <p>Cincin Saturnus membentang hingga 282.000 km dari planet, namun ketebalannya hanya sekitar 10 meter. Cincin ini terdiri dari triliunan partikel es air dan debu batuan. Saturnus juga memiliki bulan bernama Titan, satu-satunya satelit di Tata Surya dengan atmosfer tebal dan danau cair (metana).</p>
+                <table class="data-table">
+                    <tr><td>Jumlah Satelit</td><td>146 (Terbanyak saat ini)</td></tr>
+                    <tr><td>Jarak ke Matahari</td><td>1.4 Miliar KM</td></tr>
+                    <tr><td>Lama Satu Tahun</td><td>29.4 Tahun Bumi</td></tr>
+                    <tr><td>Kecepatan Angin</td><td>Hingga 1.800 KM/Jam</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="section" id="p-uranus">
+            <div class="planet-card">
+                <div class="planet-visual uranus"></div>
+                <h2>Uranus</h2>
+                <p>Uranus adalah planet pertama yang ditemukan dengan bantuan teleskop (oleh William Herschel pada 1781). Berbeda dengan Jupiter dan Saturnus, Uranus adalah "Raksasa Es" yang mengandung lebih banyak material berat seperti air, amonia, dan metana beku.</p>
+                <h3>Planet yang Menggelinding</h3>
+                <p>Uranus memiliki keunikan yang sangat aneh: sumbu rotasinya miring 98 derajat. Artinya, Uranus berotasi menyamping. Ilmuwan menduga hal ini terjadi karena tabrakan masif dengan objek seukuran Bumi di masa lalu. Hal ini menyebabkan perubahan musim yang sangat ekstrem di kutubnya.</p>
+                <table class="data-table">
+                    <tr><td>Suhu Terdingin</td><td>-224°C</td></tr>
+                    <tr><td>Cincin</td><td>13 Cincin Tipis Gelap</td></tr>
+                    <tr><td>Jarak ke Matahari</td><td>2.87 Miliar KM</td></tr>
+                    <tr><td>Warna</td><td>Biru Cyan (Akibat Metana)</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="section" id="p-neptunus">
+            <div class="planet-card">
+                <div class="planet-visual neptune"></div>
+                <h2>Neptunus</h2>
+                <p>Neptunus adalah planet terjauh dari Matahari dan yang pertama ditemukan melalui perhitungan matematika sebelum terlihat oleh teleskop. Sebagai raksasa es biru tua, Neptunus adalah dunia yang sangat dinamis dengan cuaca yang paling liar di Tata Surya.</p>
+                <h3>Supersonik & Gelap</h3>
+                <p>Neptunus memiliki angin tercepat yang pernah tercatat, mencapai 2.100 km/jam—lebih cepat dari kecepatan suara di Bumi. Ia memiliki "Bintik Gelap Besar" yang mirip dengan badai Jupiter. Karena jaraknya yang sangat jauh, Neptunus membutuhkan waktu 165 tahun hanya untuk menyelesaikan satu kali revolusi terhadap Matahari.</p>
+                <table class="data-table">
+                    <tr><td>Jarak ke Matahari</td><td>4.5 Miliar KM</td></tr>
+                    <tr><td>Satelit Terbesar</td><td>Triton (Mengorbit terbalik)</td></tr>
+                    <tr><td>Inti Planet</td><td>Batuan padat seukuran Bumi</td></tr>
+                    <tr><td>Gravitasi</td><td>1.14 x Bumi (Hampir mirip)</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="section" id="p-kerdil">
+            <div class="planet-card">
+                <div class="planet-visual dwarf"></div>
+                <h2>Planet Kerdil</h2>
+                <p>Planet kerdil adalah benda langit yang mengorbit Matahari, berbentuk hampir bulat, namun belum "membersihkan" orbitnya dari benda-benda lain.</p>
+                <h3>Pluto</h3>
+                <p>Dulu planet ke-9, Pluto kini diklasifikasikan sebagai planet kerdil di Sabuk Kuiper. Ia memiliki 5 bulan, dengan Charon sebagai yang terbesar.</p>
+                <h3>Eris, Ceres, & Haumea</h3>
+                <p>Eris ditemukan lebih masif dari Pluto. Ceres terletak di Sabuk Asteroid, sementara Haumea memiliki bentuk lonjong yang unik akibat rotasi super cepat.</p>
+            </div>
+        </section>
+
+        <section class="section" id="p-benda">
+            <div class="planet-card">
+                <h2>Komet & Meteor</h2>
+                <h3>Komet (Bola Salju Kotor)</h3>
+                <p>Komet adalah objek dari es dan debu. Saat mendekati Matahari, panas menciptakan ekor gas indah yang selalu menjauhi Matahari.</p>
+                <h3>Meteoroid & Asteroid</h3>
+                <p>Asteroid adalah sisa batuan pembentukan planet. Meteoroid yang terbakar di atmosfer disebut Meteor, dan yang menabrak tanah disebut Meteorit.</p>
+            </div>
+        </section>
+
+    </div>
+
+    <footer id="footer">
+        <div class="footer-credit">Author: Mr.Rm19</div>
+        <p><a href="mailto:ramdan19id@gmail.com" style="color:var(--accent-green); text-decoration:none;">ramdan19id@gmail.com</a></p>
+        <h2 style="border:none;">Perjalanan Belum Berakhir</h2>
+        <p style="max-width: 600px; margin: 0 auto; opacity: 0.7;">Betapa kecil nya kita, bersyukur lah dengan ilmu pengetahuan yang kita tahu</p>
+        <p style="margin-top: 50px; font-size: 0.8rem; letter-spacing: 2px;">© 2026 ASTRONOMI INDONESIA Mr.Rm19</p>
+    </footer>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+
+        const canvas = document.getElementById('star-canvas');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function initStars() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            stars = [];
+            for(let i=0; i<450; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    opacity: Math.random(),
+                    speed: 0.005 + Math.random() * 0.012
+                });
+            }
+        }
+
+        function animateStars() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            stars.forEach(s => {
+                s.opacity += s.speed;
+                if(s.opacity > 1 || s.opacity < 0) s.speed = -s.speed;
+                ctx.fillStyle = `rgba(224, 242, 247, ${s.opacity})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+                ctx.fill();
+            });
+            requestAnimationFrame(animateStars);
+        }
+
+        initStars();
+        animateStars();
+        window.addEventListener('resize', initStars);
+    </script>
+</body>
+</html>
